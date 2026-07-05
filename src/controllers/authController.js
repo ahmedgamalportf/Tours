@@ -12,9 +12,11 @@ const register = async(req,res)=>{
         })
 
     } catch (error) {
-        return res.status(400).json({
+        const statusCode = error.code === 11000 ? 409 : error.statusCode || 500;
+
+        return res.status(statusCode).json({
         success: false,
-        message: error.message,
+        message: error.code === 11000 ? 'Email already exists' : error.message,
     });
     }
 
@@ -29,7 +31,7 @@ const login = async (req,res)=>{
         })
 
     } catch (error) {
-        return res.status(400).json({
+        return res.status(error.statusCode || 500).json({
         success: false,
         message: error.message,
     });

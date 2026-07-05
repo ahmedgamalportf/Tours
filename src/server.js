@@ -1,5 +1,12 @@
 require('dotenv').config();
 
+const requiredEnvVars = ['PORT', 'MONGO_URI', 'JWT_SECRET'];
+const missingEnvVars = requiredEnvVars.filter((key) => !process.env[key]);
+
+if (missingEnvVars.length > 0) {
+    throw new Error(`Missing required environment variables: ${missingEnvVars.join(', ')}`);
+}
+
 const express = require('express');
 const app = express();
 const PORT = process.env.PORT

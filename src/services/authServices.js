@@ -2,32 +2,57 @@ const bcrypt = require('bcrypt');
 const User = require('../models/User');
 const jwt = require('jsonwebtoken');
 
+const createError = (message, statusCode) => {
+  const error = new Error(message);
+  error.statusCode = statusCode;
+  return error;
+};
+
+const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const mobileRegex = /^\+?\d{10,15}$/;
+const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{10,}$/;
+
 
 const register = async (userData) => {
   const { firstName, lastName, email, password, mobileNumber } = userData;
 
   if (!firstName || !lastName || !email || !password || !mobileNumber) {
-    throw new Error('All fields are required');
+    throw createError('All fields are required', 400);
   }
 
   if (typeof firstName !== 'string' || !firstName.trim()) {
-    throw new Error('First name is required');
+    throw createError('First name is required', 400);
   }
 
   if (typeof lastName !== 'string' || !lastName.trim()) {
-    throw new Error('Last name is required');
+    throw createError('Last name is required', 400);
   }
 
   if (typeof email !== 'string' || !email.trim()) {
-    throw new Error('Email is required');
+    throw createError('Email is required', 400);
+  }
+
+  if (!emailRegex.test(email.trim())) {
+    throw createError('Invalid email format', 400);
   }
 
   if (typeof password !== 'string' || !password.trim()) {
-    throw new Error('Password is required');
+    throw createError('Password is required', 400);
+  }
+
+  if (!passwordRegex.test(password)) {
+    throw createError(
+      'Password must be at least 10 characters and include uppercase, lowercase, number, and special character',
+      400
+    );
   }
 
   if (typeof mobileNumber !== 'string' || !mobileNumber.trim()) {
-    throw new Error('Mobile number is required');
+    throw createError('Mobile number is required', 400);
+  }
+
+  if (!mobileRegex.test(mobileNumber.trim())) {
+    throw createError('Mobile number must contain 10 to 15 digits and may start with +', 400);
   }
 
   const normalizedEmail = email.trim().toLowerCase();
@@ -35,7 +60,7 @@ const register = async (userData) => {
   const emailExistance = await User.findOne({ email: normalizedEmail });
 
   if (emailExistance) {
-    throw new Error('Email already exists');
+    throw createError('Email already exists', 409);
   }
 
   const hashedPassword = await bcrypt.hash(password, 10);
@@ -66,15 +91,19 @@ const login = async(userData)=>{
     const {email, password} = userData;
 
     if (!email || !password) {
-    throw new Error('you have to enter email or password');
+    throw createError('you have to enter email or password', 400);
     }  
 
      if (typeof email !== 'string' || !email.trim()) {
-    throw new Error('Email is required');
+    throw createError('Email is required', 400);
+    }
+
+    if (!emailRegex.test(email.trim())) {
+    throw createError('Invalid email format', 400);
     }
 
     if (typeof password !== 'string' || !password.trim()) {
-    throw new Error('Password is required');
+    throw createError('Password is required', 400);
     }
     const normalizedEmail = email.trim().toLowerCase();
     
@@ -84,13 +113,13 @@ const login = async(userData)=>{
     }); 
 
     if(!user){
-        throw new Error('invalid email or password');
+        throw createError('invalid email or password', 401);
     }
 
     const isMatch = await bcrypt.compare(password,user.password);
 
     if(!isMatch){
-        throw new Error('invalid email or password');
+        throw createError('invalid email or password', 401);
     }
 
     const token = jwt.sign({

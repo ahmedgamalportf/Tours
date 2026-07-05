@@ -19,9 +19,7 @@ const userSchema = mongoose.Schema({
     },
     password:{
         type: String,
-        required: true,
-        trim: true,
-        minlength: 10
+        required: true
     },
     mobileNumber:{
         type: String,
