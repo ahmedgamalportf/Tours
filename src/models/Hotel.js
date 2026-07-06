@@ -73,7 +73,7 @@ const hotelSchema = mongoose.Schema({
 
 },
 {
-    timstamps:true
+    timestamps:true
 });
 
 const Hotel = mongoose.model('Hotel',hotelSchema);
