@@ -69,7 +69,8 @@ const addHotel= async(hotelData,userId)=>{
 
 const gethotels =async()=>{
     const hotels = await Hotel.find({isActive:true})
-    
+    .select('-createdBy');
+
     return {
         message:'hotel fetched successfully',
         hotels,
@@ -233,7 +234,7 @@ const editHotel = async (hotelId, updateData) => {
     hotelId,
     updates,
     {
-      new: true,
+      returnDocument: 'after',
       runValidators: true,
     }
   );
@@ -248,6 +249,71 @@ const editHotel = async (hotelId, updateData) => {
   };
 };
 
+const softDeleteHotel = async (hotelId) => {
+  if (!mongoose.Types.ObjectId.isValid(hotelId)) {
+    throw new Error('Invalid hotel ID');
+  }
+
+  const hotel = await Hotel.findByIdAndUpdate(
+    hotelId,
+    { isActive: false },
+    {
+      returnDocument: 'after',
+      runValidators: true,
+    }
+  );
+
+  if (!hotel) {
+    throw new Error('Hotel not found');
+  }
+
+  return {
+    message: 'Hotel soft deleted successfully',
+    hotel,
+  };
+};
+
+const restoreHotel = async (hotelId) => {
+  if (!mongoose.Types.ObjectId.isValid(hotelId)) {
+    throw new Error('Invalid hotel ID');
+  }
+
+  const hotel = await Hotel.findByIdAndUpdate(
+    hotelId,
+    { isActive: true },
+    {
+      returnDocument: 'after',
+      runValidators: true,
+    }
+  );
+
+  if (!hotel) {
+    throw new Error('Hotel not found');
+  }
+
+  return {
+    message: 'Hotel restored successfully',
+    hotel,
+  };
+};
+
+const hardDeleteHotel = async (hotelId) => {
+  if (!mongoose.Types.ObjectId.isValid(hotelId)) {
+    throw new Error('Invalid hotel ID');
+  }
+
+  const hotel = await Hotel.findByIdAndDelete(hotelId);
+
+  if (!hotel) {
+    throw new Error('Hotel not found');
+  }
+
+  return {
+    message: 'Hotel permanently deleted successfully',
+    hotel,
+  };
+};
+
 module.exports = {
   addHotel,
   gethotels,
@@ -255,4 +321,7 @@ module.exports = {
   getHotelById,
   getHotelByIdForAdmin,
   editHotel,
+  softDeleteHotel,
+  restoreHotel,
+  hardDeleteHotel,
 };

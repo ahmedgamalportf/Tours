@@ -100,6 +100,53 @@ const editHotel = async (req, res) => {
     });
   }
 };
+const softDeleteHotel = async (req, res) => {
+  try {
+    const results = await hotelServices.softDeleteHotel(req.params.id);
+
+    res.status(200).json({
+      success: true,
+      ...results,
+    });
+  } catch (error) {
+    return res.status(400).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+const restoreHotel = async (req, res) => {
+  try {
+    const results = await hotelServices.restoreHotel(req.params.id);
+
+    res.status(200).json({
+      success: true,
+      ...results,
+    });
+  } catch (error) {
+    return res.status(400).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+const hardDeleteHotel = async (req, res) => {
+  try {
+    const results = await hotelServices.hardDeleteHotel(req.params.id);
+
+    res.status(200).json({
+      success: true,
+      ...results,
+    });
+  } catch (error) {
+    return res.status(400).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
 
 module.exports = {
   addHotel,
@@ -108,5 +155,8 @@ module.exports = {
   getHotelById,
   getHotelByIdForAdmin,
   editHotel,
+  softDeleteHotel,
+  restoreHotel,
+  hardDeleteHotel,
 
 };
