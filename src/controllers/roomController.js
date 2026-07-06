@@ -5,10 +5,12 @@ const getStatusCode = (error, fallbackStatusCode = 400) => error.statusCode || f
 
 const addRoom = async (req, res) => {
   try {
+    const hotelId = req.params.hotelId || req.body.hotelId || req.body.hotel;
+
     const results = await roomServices.addRoom(
       req.body,
       req.user._id,
-      req.params.hotelId
+      hotelId
     );
 
     res.status(201).json({
@@ -61,8 +63,93 @@ const getRoomById = async(req,res)=>{
 }
 
 
+const getRoomByIdForAdmin = async(req,res)=>{
+    try {
+        const results = await roomServices.getRoomByIdForAdmin(req.params.id);
+        res.status(200).json({
+      success: true,
+      ...results,
+    });
+    } catch (error) {
+       return res.status(getStatusCode(error, 404)).json({
+      success: false,
+      message: error.message,
+    }); 
+    }
+}
+
+const editRoom = async(req,res)=>{
+    try {
+        const results = await roomServices.editRoom(req.params.id, req.body);
+        res.status(200).json({
+        success: true,
+        ...results,
+    });
+    } catch (error) {
+        return res.status(getStatusCode(error)).json({
+        success: false,
+        message: error.message,
+    });
+    }
+}
+
+const softDeleteRoom = async(req,res)=>{
+    try {
+        const results = await roomServices.softDeleteRoom(req.params.id);
+        res.status(200).json({
+        success: true,
+        ...results,
+    });
+    } catch (error) {
+        return res.status(getStatusCode(error)).json({
+        success: false,
+        message: error.message,
+    });
+    }
+}
+
+const restoreRoom = async(req,res)=>{
+
+    try {
+        const results = await roomServices.restoreRoom(req.params.id);
+        res.status(200).json({
+        success: true,
+        ...results,
+    });
+    } catch (error) {
+        return res.status(getStatusCode(error)).json({
+        success: false,
+        message: error.message,
+    });
+    }
+}
+
+const hardDeleteRoom = async (req, res) => {
+
+    try {
+        const results =  await roomServices.hardDeleteRoom(req.params.id);
+        res.status(200).json({
+        success: true,
+        ...results,
+    });
+    } catch (error) {
+        return res.status(getStatusCode(error)).json({
+        success: false,
+        message: error.message,
+    }); 
+    }
+
+}
+
+
+
 module.exports = {
   addRoom,
   getRooms,
   getRoomById,
+  getRoomByIdForAdmin,
+  editRoom,
+  softDeleteRoom,
+  restoreRoom,
+  hardDeleteRoom
 };
