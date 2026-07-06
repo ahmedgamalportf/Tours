@@ -43,7 +43,6 @@ The project follows a layered architecture (Routes → Controllers → Services 
 - Get All Hotels
 - Search Hotels
 - Hotel Images
-- Hotel Amenities
 - Hotel Ratings
 
 ---

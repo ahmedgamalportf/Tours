@@ -1,5 +1,7 @@
 const hotelServices = require('../services/hotelServices');
 
+const getStatusCode = (error, fallbackStatusCode = 400) => error.statusCode || fallbackStatusCode;
+
 const addHotel = async (req, res) => {
   try {
     const results = await hotelServices.addHotel(req.body, req.user._id);
@@ -9,7 +11,7 @@ const addHotel = async (req, res) => {
       ...results,
     });
   } catch (error) {
-    return res.status(400).json({
+    return res.status(getStatusCode(error)).json({
       success: false,
       message: error.message,
     });
@@ -26,7 +28,7 @@ const gethotels = async(req,res) =>{
         });
 
     } catch (error) {
-        return res.status(400).json({
+        return res.status(getStatusCode(error)).json({
         success: false,
         message: error.message,
       });
@@ -43,7 +45,7 @@ const gethotelsForadmin = async (req, res) => {
       ...results,
     });
   } catch (error) {
-    return res.status(400).json({
+    return res.status(getStatusCode(error)).json({
       success: false,
       message: error.message,
     });
@@ -60,7 +62,7 @@ const getHotelById = async (req, res) => {
       ...results,
     });
   } catch (error) {
-    return res.status(404).json({
+    return res.status(getStatusCode(error, 404)).json({
       success: false,
       message: error.message,
     });
@@ -76,7 +78,7 @@ const getHotelByIdForAdmin = async (req, res) => {
       ...results,
     });
   } catch (error) {
-    return res.status(404).json({
+    return res.status(getStatusCode(error, 404)).json({
       success: false,
       message: error.message,
     });
@@ -92,7 +94,7 @@ const editHotel = async (req, res) => {
       ...results,
     });
   } catch (error) {
-    return res.status(400).json({
+    return res.status(getStatusCode(error)).json({
       success: false,
       message: error.message,
     });
@@ -107,7 +109,7 @@ const softDeleteHotel = async (req, res) => {
       ...results,
     });
   } catch (error) {
-    return res.status(400).json({
+    return res.status(getStatusCode(error)).json({
       success: false,
       message: error.message,
     });
@@ -123,7 +125,7 @@ const restoreHotel = async (req, res) => {
       ...results,
     });
   } catch (error) {
-    return res.status(400).json({
+    return res.status(getStatusCode(error)).json({
       success: false,
       message: error.message,
     });
@@ -139,7 +141,7 @@ const hardDeleteHotel = async (req, res) => {
       ...results,
     });
   } catch (error) {
-    return res.status(400).json({
+    return res.status(getStatusCode(error)).json({
       success: false,
       message: error.message,
     });
@@ -156,7 +158,7 @@ const searchHotels = async (req, res) => {
       ...results,
     });
   } catch (error) {
-    return res.status(400).json({
+    return res.status(getStatusCode(error)).json({
       success: false,
       message: error.message,
     });

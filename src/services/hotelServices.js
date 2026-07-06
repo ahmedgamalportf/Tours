@@ -1,6 +1,31 @@
 const Hotel = require('../models/Hotel');
 const mongoose = require('mongoose');
 
+const createError = (message, statusCode) => {
+  const error = new Error(message);
+  error.statusCode = statusCode;
+  return error;
+};
+
+const validatePagination = (queryParams) => {
+  const page = queryParams.page === undefined ? 1 : Number(queryParams.page);
+  const limit = queryParams.limit === undefined ? 10 : Number(queryParams.limit);
+
+  if (!Number.isInteger(page) || page < 1) {
+    throw createError('Page must be a positive integer', 400);
+  }
+
+  if (!Number.isInteger(limit) || limit < 1 || limit > 50) {
+    throw createError('Limit must be a positive integer between 1 and 50', 400);
+  }
+
+  return {
+    page,
+    limit,
+    skip: (page - 1) * limit,
+  };
+};
+
 const addHotel= async(hotelData,userId)=>{
     const {name,
     description,
@@ -14,36 +39,52 @@ const addHotel= async(hotelData,userId)=>{
     isActive,
     stars,} = hotelData;
     
-    if (!name || !description || !country || !city || !address || !location || !stars) {
-        throw new Error('All required fields must be provided');
+    if (!name || !description || !country || !city || !address || !location || stars === undefined || roomsAvailable === undefined) {
+        throw createError('All required fields must be provided', 400);
     }
 
     if (typeof name !== 'string' || !name.trim()) {
-        throw new Error('Hotel name is required');
+        throw createError('Hotel name is required', 400);
     }
 
     if (typeof description !== 'string' || !description.trim()) {
-        throw new Error('Description is required');
+        throw createError('Description is required', 400);
     }
 
     if (typeof country !== 'string' || !country.trim()) {
-        throw new Error('Country is required');
+        throw createError('Country is required', 400);
     }
 
     if (typeof city !== 'string' || !city.trim()) {
-        throw new Error('City is required');
+        throw createError('City is required', 400);
     }
 
     if (typeof address !== 'string' || !address.trim()) {
-        throw new Error('Address is required');
+        throw createError('Address is required', 400);
     }
 
     if (typeof location !== 'string' || !location.trim()) {
-        throw new Error('Location link is required');
+        throw createError('Location link is required', 400);
     }
 
     if (typeof stars !== 'number' || stars < 1 || stars > 5) {
-        throw new Error('Stars must be a number between 1 and 5');
+        throw createError('Stars must be a number between 1 and 5', 400);
+    }
+
+    if (typeof roomsAvailable !== 'number' || roomsAvailable < 0) {
+        throw createError('Rooms available must be a number greater than or equal to 0', 400);
+    }
+
+    if (images !== undefined && !Array.isArray(images)) {
+        throw createError('Images must be an array', 400);
+    }
+
+    if (isFeatured !== undefined && typeof isFeatured !== 'boolean') {
+        throw createError('isFeatured must be boolean', 400);
+    }
+
+    if (isActive !== undefined && typeof isActive !== 'boolean') {
+        throw createError('isActive must be boolean', 400);
     }
 
     const hotel = await Hotel.create({
@@ -54,7 +95,7 @@ const addHotel= async(hotelData,userId)=>{
         address: address.trim(),
         location: location.trim(),
         images: images || [],
-        roomsAvailable: roomsAvailable || 0,
+        roomsAvailable,
         isFeatured: isFeatured || false,
         isActive: isActive !== undefined ? isActive : true,
         stars,
@@ -68,10 +109,7 @@ const addHotel= async(hotelData,userId)=>{
 };
 
 const gethotels = async (queryParams) => {
-  const page = parseInt(queryParams.page) || 1;
-  const limit = parseInt(queryParams.limit) || 10;
-
-  const skip = (page - 1) * limit;
+  const { page, limit, skip } = validatePagination(queryParams);
 
   const filter = {
     isActive: true,
@@ -99,9 +137,7 @@ const gethotels = async (queryParams) => {
 
 
 const gethotelsForadmin = async (queryParams) => {
-  const page = parseInt(queryParams.page) || 1;
-  const limit = parseInt(queryParams.limit) || 10;
-  const skip = (page - 1) * limit;
+  const { page, limit, skip } = validatePagination(queryParams);
 
   const hotels = await Hotel.find()
     .populate('createdBy', 'firstName lastName email role')
@@ -124,16 +160,16 @@ const gethotelsForadmin = async (queryParams) => {
 
 const getHotelById = async (hotelId) => {
   if (!mongoose.Types.ObjectId.isValid(hotelId)) {
-    throw new Error('Invalid hotel ID');
+    throw createError('Invalid hotel ID', 400);
   }
 
   const hotel = await Hotel.findOne({
     _id: hotelId,
     isActive: true,
-  });
+  }).select('-createdBy');
 
   if (!hotel) {
-    throw new Error('Hotel not found');
+    throw createError('Hotel not found', 404);
   }
 
   return {
@@ -144,13 +180,13 @@ const getHotelById = async (hotelId) => {
 
 const getHotelByIdForAdmin = async (hotelId) => {
   if (!mongoose.Types.ObjectId.isValid(hotelId)) {
-    throw new Error('Invalid hotel ID');
+    throw createError('Invalid hotel ID', 400);
   }
 
   const hotel = await Hotel.findById(hotelId);
 
   if (!hotel) {
-    throw new Error('Hotel not found');
+    throw createError('Hotel not found', 404);
   }
 
   return {
@@ -162,7 +198,7 @@ const getHotelByIdForAdmin = async (hotelId) => {
 
 const editHotel = async (hotelId, updateData) => {
   if (!mongoose.Types.ObjectId.isValid(hotelId)) {
-    throw new Error('Invalid hotel ID');
+    throw createError('Invalid hotel ID', 400);
   }
 
   const allowedUpdates = [
@@ -188,73 +224,73 @@ const editHotel = async (hotelId, updateData) => {
   }
 
   if (Object.keys(updates).length === 0) {
-    throw new Error('No valid fields provided for update');
+    throw createError('No valid fields provided for update', 400);
   }
 
   if (updates.name !== undefined) {
     if (typeof updates.name !== 'string' || !updates.name.trim()) {
-      throw new Error('Hotel name must be a non-empty string');
+      throw createError('Hotel name must be a non-empty string', 400);
     }
     updates.name = updates.name.trim();
   }
 
   if (updates.description !== undefined) {
     if (typeof updates.description !== 'string' || !updates.description.trim()) {
-      throw new Error('Description must be a non-empty string');
+      throw createError('Description must be a non-empty string', 400);
     }
     updates.description = updates.description.trim();
   }
 
   if (updates.country !== undefined) {
     if (typeof updates.country !== 'string' || !updates.country.trim()) {
-      throw new Error('Country must be a non-empty string');
+      throw createError('Country must be a non-empty string', 400);
     }
     updates.country = updates.country.trim();
   }
 
   if (updates.city !== undefined) {
     if (typeof updates.city !== 'string' || !updates.city.trim()) {
-      throw new Error('City must be a non-empty string');
+      throw createError('City must be a non-empty string', 400);
     }
     updates.city = updates.city.trim();
   }
 
   if (updates.address !== undefined) {
     if (typeof updates.address !== 'string' || !updates.address.trim()) {
-      throw new Error('Address must be a non-empty string');
+      throw createError('Address must be a non-empty string', 400);
     }
     updates.address = updates.address.trim();
   }
 
   if (updates.location !== undefined) {
     if (typeof updates.location !== 'string' || !updates.location.trim()) {
-      throw new Error('Location link must be a non-empty string');
+      throw createError('Location link must be a non-empty string', 400);
     }
     updates.location = updates.location.trim();
   }
 
   if (updates.stars !== undefined) {
     if (typeof updates.stars !== 'number' || updates.stars < 1 || updates.stars > 5) {
-      throw new Error('Stars must be a number between 1 and 5');
+      throw createError('Stars must be a number between 1 and 5', 400);
     }
   }
 
   if (updates.roomsAvailable !== undefined) {
     if (typeof updates.roomsAvailable !== 'number' || updates.roomsAvailable < 0) {
-      throw new Error('Rooms available must be a number greater than or equal to 0');
+      throw createError('Rooms available must be a number greater than or equal to 0', 400);
     }
   }
 
   if (updates.images !== undefined && !Array.isArray(updates.images)) {
-    throw new Error('Images must be an array');
+    throw createError('Images must be an array', 400);
   }
 
   if (updates.isFeatured !== undefined && typeof updates.isFeatured !== 'boolean') {
-    throw new Error('isFeatured must be boolean');
+    throw createError('isFeatured must be boolean', 400);
   }
 
   if (updates.isActive !== undefined && typeof updates.isActive !== 'boolean') {
-    throw new Error('isActive must be boolean');
+    throw createError('isActive must be boolean', 400);
   }
 
   const hotel = await Hotel.findByIdAndUpdate(
@@ -267,7 +303,7 @@ const editHotel = async (hotelId, updateData) => {
   );
 
   if (!hotel) {
-    throw new Error('Hotel not found');
+    throw createError('Hotel not found', 404);
   }
 
   return {
@@ -278,7 +314,7 @@ const editHotel = async (hotelId, updateData) => {
 
 const softDeleteHotel = async (hotelId) => {
   if (!mongoose.Types.ObjectId.isValid(hotelId)) {
-    throw new Error('Invalid hotel ID');
+    throw createError('Invalid hotel ID', 400);
   }
 
   const hotel = await Hotel.findByIdAndUpdate(
@@ -291,7 +327,7 @@ const softDeleteHotel = async (hotelId) => {
   );
 
   if (!hotel) {
-    throw new Error('Hotel not found');
+    throw createError('Hotel not found', 404);
   }
 
   return {
@@ -302,7 +338,7 @@ const softDeleteHotel = async (hotelId) => {
 
 const restoreHotel = async (hotelId) => {
   if (!mongoose.Types.ObjectId.isValid(hotelId)) {
-    throw new Error('Invalid hotel ID');
+    throw createError('Invalid hotel ID', 400);
   }
 
   const hotel = await Hotel.findByIdAndUpdate(
@@ -315,7 +351,7 @@ const restoreHotel = async (hotelId) => {
   );
 
   if (!hotel) {
-    throw new Error('Hotel not found');
+    throw createError('Hotel not found', 404);
   }
 
   return {
@@ -326,13 +362,13 @@ const restoreHotel = async (hotelId) => {
 
 const hardDeleteHotel = async (hotelId) => {
   if (!mongoose.Types.ObjectId.isValid(hotelId)) {
-    throw new Error('Invalid hotel ID');
+    throw createError('Invalid hotel ID', 400);
   }
 
   const hotel = await Hotel.findByIdAndDelete(hotelId);
 
   if (!hotel) {
-    throw new Error('Hotel not found');
+    throw createError('Hotel not found', 404);
   }
 
   return {
@@ -364,8 +400,14 @@ const searchHotels = async (queryParams) => {
     filter.country = { $regex: country, $options: 'i' };
   }
 
-  if (stars) {
-    filter.stars = Number(stars);
+  if (stars !== undefined) {
+    const parsedStars = Number(stars);
+
+    if (!Number.isFinite(parsedStars) || parsedStars < 1 || parsedStars > 5) {
+      throw createError('Stars must be a number between 1 and 5', 400);
+    }
+
+    filter.stars = parsedStars;
   }
 
   if (isFeatured !== undefined) {
@@ -381,9 +423,11 @@ const searchHotels = async (queryParams) => {
     ];
   }
 
-  const currentPage = parseInt(page);
-  const pageLimit = parseInt(limit);
-  const skip = (currentPage - 1) * pageLimit;
+  const {
+    page: currentPage,
+    limit: pageLimit,
+    skip,
+  } = validatePagination({ page, limit });
 
   const hotels = await Hotel.find(filter)
     .select('-createdBy')
