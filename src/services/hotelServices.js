@@ -114,9 +114,27 @@ const getHotelById = async (hotelId) => {
   };
 };
 
+const getHotelByIdForAdmin = async (hotelId) => {
+  if (!mongoose.Types.ObjectId.isValid(hotelId)) {
+    throw new Error('Invalid hotel ID');
+  }
+
+  const hotel = await Hotel.findById(hotelId);
+
+  if (!hotel) {
+    throw new Error('Hotel not found');
+  }
+
+  return {
+    message: 'Hotel fetched successfully',
+    hotel,
+  };
+};
+
 module.exports = {
   addHotel,
   gethotels,
   gethotelsForadmin,
   getHotelById,
+  getHotelByIdForAdmin,
 };

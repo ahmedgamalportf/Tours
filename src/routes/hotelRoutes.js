@@ -9,12 +9,15 @@ const {
   gethotels,
   gethotelsForadmin,
   getHotelById,
+  getHotelByIdForAdmin,
+
 } = require('../controllers/hotelController');
 
 router.post('/addhotel', authMiddleware, allowRoles('admin'), addHotel);
 router.get('/gethotels', gethotels);
 router.get('/gethotels/:id', getHotelById);
-router.get('/gethotels/:id', getHotelById);
+router.get('/gethotelbyidforadmin/:id', authMiddleware, allowRoles('admin'), getHotelByIdForAdmin);
+
 
 
 router.get(
