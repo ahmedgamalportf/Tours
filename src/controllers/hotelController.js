@@ -19,7 +19,7 @@ const addHotel = async (req, res) => {
 const gethotels = async(req,res) =>{
 
     try {
-        const results = await hotelServices.gethotels();
+        const results = await hotelServices.gethotels(req.query);
         res.status(200).json({
             success:true,
             ...results,
@@ -34,24 +34,22 @@ const gethotels = async(req,res) =>{
 
 };
 
+const gethotelsForadmin = async (req, res) => {
+  try {
+    const results = await hotelServices.gethotelsForadmin(req.query);
 
-const gethotelsForadmin = async(req,res) =>{
-
-    try {
-        const results = await hotelServices.gethotels(req.user._id);
-        res.status(200).json({
-            success:true,
-            ...results,
-        });
-
-    } catch (error) {
-        return res.status(400).json({
-        success: false,
-        message: error.message,
-      });
-    }
-
+    res.status(200).json({
+      success: true,
+      ...results,
+    });
+  } catch (error) {
+    return res.status(400).json({
+      success: false,
+      message: error.message,
+    });
+  }
 };
+
 
 const getHotelById = async (req, res) => {
   try {
@@ -148,6 +146,24 @@ const hardDeleteHotel = async (req, res) => {
   }
 };
 
+
+const searchHotels = async (req, res) => {
+  try {
+    const results = await hotelServices.searchHotels(req.query);
+
+    res.status(200).json({
+      success: true,
+      ...results,
+    });
+  } catch (error) {
+    return res.status(400).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+
 module.exports = {
   addHotel,
   gethotels,
@@ -158,5 +174,5 @@ module.exports = {
   softDeleteHotel,
   restoreHotel,
   hardDeleteHotel,
-
+  searchHotels,
 };

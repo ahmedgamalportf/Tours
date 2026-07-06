@@ -67,33 +67,60 @@ const addHotel= async(hotelData,userId)=>{
     };
 };
 
-const gethotels =async()=>{
-    const hotels = await Hotel.find({isActive:true})
-    .select('-createdBy');
+const gethotels = async (queryParams) => {
+  const page = parseInt(queryParams.page) || 1;
+  const limit = parseInt(queryParams.limit) || 10;
 
-    return {
-        message:'hotel fetched successfully',
-        hotels,
-        count:hotels.length,
-    }
-}
+  const skip = (page - 1) * limit;
 
-const gethotelsForadmin = async (req, res) => {
-  try {
-    const results = await hotelServices.gethotelsForadmin();
+  const filter = {
+    isActive: true,
+  };
 
-    res.status(200).json({
-      success: true,
-      ...results,
-    });
-  } catch (error) {
-    return res.status(400).json({
-      success: false,
-      message: error.message,
-    });
-  }
+  const hotels = await Hotel.find(filter)
+    .select('-createdBy')
+    .skip(skip)
+    .limit(limit);
+
+  const totalHotels = await Hotel.countDocuments(filter);
+
+  return {
+    message: 'hotel fetched successfully',
+    pagination: {
+      currentPage: page,
+      limit,
+      totalHotels,
+      totalPages: Math.ceil(totalHotels / limit),
+    },
+    hotels,
+  };
 };
 
+
+
+const gethotelsForadmin = async (queryParams) => {
+  const page = parseInt(queryParams.page) || 1;
+  const limit = parseInt(queryParams.limit) || 10;
+  const skip = (page - 1) * limit;
+
+  const hotels = await Hotel.find()
+    .populate('createdBy', 'firstName lastName email role')
+    .skip(skip)
+    .limit(limit);
+
+  const totalHotels = await Hotel.countDocuments();
+
+  return {
+    message: 'hotels fetched successfully',
+    pagination: {
+      currentPage: page,
+      limit,
+      totalHotels,
+      totalPages: Math.ceil(totalHotels / limit),
+    },
+    hotels,
+  };
+};
 
 const getHotelById = async (hotelId) => {
   if (!mongoose.Types.ObjectId.isValid(hotelId)) {
@@ -314,6 +341,69 @@ const hardDeleteHotel = async (hotelId) => {
   };
 };
 
+const searchHotels = async (queryParams) => {
+  const {
+    search,
+    city,
+    country,
+    stars,
+    isFeatured,
+    page = 1,
+    limit = 10,
+  } = queryParams;
+
+  const filter = {
+    isActive: true,
+  };
+
+  if (city) {
+    filter.city = { $regex: city, $options: 'i' };
+  }
+
+  if (country) {
+    filter.country = { $regex: country, $options: 'i' };
+  }
+
+  if (stars) {
+    filter.stars = Number(stars);
+  }
+
+  if (isFeatured !== undefined) {
+    filter.isFeatured = isFeatured === 'true';
+  }
+
+  if (search) {
+    filter.$or = [
+      { name: { $regex: search, $options: 'i' } },
+      { description: { $regex: search, $options: 'i' } },
+      { city: { $regex: search, $options: 'i' } },
+      { country: { $regex: search, $options: 'i' } },
+    ];
+  }
+
+  const currentPage = parseInt(page);
+  const pageLimit = parseInt(limit);
+  const skip = (currentPage - 1) * pageLimit;
+
+  const hotels = await Hotel.find(filter)
+    .select('-createdBy')
+    .skip(skip)
+    .limit(pageLimit);
+
+  const totalHotels = await Hotel.countDocuments(filter);
+
+  return {
+    message: 'Hotels search results fetched successfully',
+    pagination: {
+      currentPage,
+      limit: pageLimit,
+      totalHotels,
+      totalPages: Math.ceil(totalHotels / pageLimit),
+    },
+    hotels,
+  };
+};
+
 module.exports = {
   addHotel,
   gethotels,
@@ -324,4 +414,5 @@ module.exports = {
   softDeleteHotel,
   restoreHotel,
   hardDeleteHotel,
+  searchHotels,
 };
