@@ -5,13 +5,13 @@ const allowRoles = require('../middleware/allowRoles');
 
 const {
     addRoom,
-    getRoom,
+    getRooms,
     getRoomById,
 } = require('../controllers/roomController');
 
 router.post('/:hotelId/addRoom', authMiddleware, allowRoles('admin'), addRoom);
 
-router.get('/getRoom', getRoom);
+router.get('/getRooms', getRooms);
 
 router.get('/getRoom/:id',getRoomById)
 

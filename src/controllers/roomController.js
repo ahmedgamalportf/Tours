@@ -23,11 +23,11 @@ const addRoom = async (req, res) => {
   }
 };
 
-const getRoom = async(req,res)=>{
+const getRooms = async(req,res)=>{
     
 
     try {
-    const results = await roomServices.getRoom(req.query);
+    const results = await roomServices.getRooms(req.query);
 
     res.status(201).json({
       success: true,
@@ -63,6 +63,6 @@ const getRoomById = async(req,res)=>{
 
 module.exports = {
   addRoom,
-  getRoom,
+  getRooms,
   getRoomById,
 };

@@ -167,7 +167,7 @@ const addRoom = async (roomData, userId, hotelId) => {
   };
 };
 
-const getRoom = async(queryParams)=>{
+const getRooms = async(queryParams)=>{
     const { page, limit, skip } = validatePagination(queryParams);
 
     const filter = {
@@ -215,6 +215,6 @@ const getRoomById = async(roomId)=>{
 
 module.exports = {
     addRoom,
-    getRoom,
+    getRooms,
     getRoomById,
 };
