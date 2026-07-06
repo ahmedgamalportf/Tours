@@ -13,12 +13,14 @@ const {
     softDeleteRoom,
     restoreRoom,
     hardDeleteRoom,
+    searchRooms,
 
 } = require('../controllers/roomController');
 
 router.post('/:hotelId/addRoom', authMiddleware, allowRoles('admin'), addRoom);
 router.post('/addRoom', authMiddleware, allowRoles('admin'), addRoom);
 router.get('/getRooms', getRooms);
+router.get('/search', searchRooms);
 router.get('/getRoom/:id',getRoomById);
 router.get('/getRoomByIdForAdmin/:id', authMiddleware, allowRoles('admin'), getRoomByIdForAdmin)
 router.patch('/softDeleteRoom/:id', authMiddleware, allowRoles('admin'), softDeleteRoom);

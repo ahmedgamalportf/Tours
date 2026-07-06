@@ -464,6 +464,126 @@ const hardDeleteRoom = async (roomId) => {
   };
 };
 
+const searchRooms = async (queryParams) => {
+  const {
+    search,
+    hotel,
+    roomType,
+    minPrice,
+    maxPrice,
+    adults,
+    children,
+    isAvailable,
+    page = 1,
+    limit = 10,
+  } = queryParams;
+
+  const filter = {
+    isActive: true,
+  };
+
+  if (hotel) {
+    const hotelId = normalizeObjectId(hotel);
+
+    if (!mongoose.Types.ObjectId.isValid(hotelId)) {
+      throw createError('Invalid hotel ID', 400);
+    }
+
+    filter.hotel = hotelId;
+  }
+
+  if (roomType) {
+    const normalizedRoomType = roomType.trim().toLowerCase();
+    const allowedRoomTypes = ['single', 'double', 'triple', 'suite', 'deluxe', 'family'];
+
+    if (!allowedRoomTypes.includes(normalizedRoomType)) {
+      throw createError('Invalid room type', 400);
+    }
+
+    filter.roomType = normalizedRoomType;
+  }
+
+  if (minPrice !== undefined || maxPrice !== undefined) {
+    filter.pricePerNight = {};
+
+    if (minPrice !== undefined) {
+      const parsedMinPrice = Number(minPrice);
+
+      if (!Number.isFinite(parsedMinPrice) || parsedMinPrice < 0) {
+        throw createError('Minimum price must be a number greater than or equal to 0', 400);
+      }
+
+      filter.pricePerNight.$gte = parsedMinPrice;
+    }
+
+    if (maxPrice !== undefined) {
+      const parsedMaxPrice = Number(maxPrice);
+
+      if (!Number.isFinite(parsedMaxPrice) || parsedMaxPrice < 0) {
+        throw createError('Maximum price must be a number greater than or equal to 0', 400);
+      }
+
+      filter.pricePerNight.$lte = parsedMaxPrice;
+    }
+  }
+
+  if (adults !== undefined) {
+    const parsedAdults = Number(adults);
+
+    if (!Number.isInteger(parsedAdults) || parsedAdults < 1) {
+      throw createError('Adults must be a positive integer', 400);
+    }
+
+    filter['capacity.adults'] = { $gte: parsedAdults };
+  }
+
+  if (children !== undefined) {
+    const parsedChildren = Number(children);
+
+    if (!Number.isInteger(parsedChildren) || parsedChildren < 0) {
+      throw createError('Children must be a number greater than or equal to 0', 400);
+    }
+
+    filter['capacity.children'] = { $gte: parsedChildren };
+  }
+
+  if (isAvailable !== undefined) {
+    filter.isAvailable = isAvailable === 'true';
+  }
+
+  if (search) {
+    filter.$or = [
+      { roomName: { $regex: search, $options: 'i' } },
+      { description: { $regex: search, $options: 'i' } },
+    ];
+  }
+
+  const {
+    page: currentPage,
+    limit: pageLimit,
+    skip,
+  } = validatePagination({ page, limit });
+
+  const rooms = await Room.find(filter)
+    .select('-createdBy')
+    .populate('hotel', 'name city country')
+    .skip(skip)
+    .limit(pageLimit);
+
+  const totalRooms = await Room.countDocuments(filter);
+
+  return {
+    message: 'Rooms search results fetched successfully',
+    pagination: {
+      currentPage,
+      limit: pageLimit,
+      totalRooms,
+      totalPages: Math.ceil(totalRooms / pageLimit),
+    },
+    rooms,
+  };
+};
+
 
 
 module.exports = {
@@ -475,4 +595,5 @@ module.exports = {
     softDeleteRoom,
     restoreRoom,
     hardDeleteRoom,
+    searchRooms,
 };

@@ -141,6 +141,21 @@ const hardDeleteRoom = async (req, res) => {
 
 }
 
+const searchRooms = async (req, res) => {
+    try {
+        const results = await roomServices.searchRooms(req.query);
+        res.status(200).json({
+        success: true,
+        ...results,
+    });
+    } catch (error) {
+        return res.status(getStatusCode(error)).json({
+        success: false,
+        message: error.message,
+    });
+    }
+}
+
 
 
 module.exports = {
@@ -151,5 +166,6 @@ module.exports = {
   editRoom,
   softDeleteRoom,
   restoreRoom,
-  hardDeleteRoom
+  hardDeleteRoom,
+  searchRooms
 };

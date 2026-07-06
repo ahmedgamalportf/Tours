@@ -384,6 +384,8 @@ const searchHotels = async (queryParams) => {
     country,
     stars,
     isFeatured,
+    minRoomsAvailable,
+    maxRoomsAvailable,
     page = 1,
     limit = 10,
   } = queryParams;
@@ -412,6 +414,30 @@ const searchHotels = async (queryParams) => {
 
   if (isFeatured !== undefined) {
     filter.isFeatured = isFeatured === 'true';
+  }
+
+  if (minRoomsAvailable !== undefined || maxRoomsAvailable !== undefined) {
+    filter.roomsAvailable = {};
+
+    if (minRoomsAvailable !== undefined) {
+      const parsedMinRooms = Number(minRoomsAvailable);
+
+      if (!Number.isInteger(parsedMinRooms) || parsedMinRooms < 0) {
+        throw createError('Minimum rooms available must be a number greater than or equal to 0', 400);
+      }
+
+      filter.roomsAvailable.$gte = parsedMinRooms;
+    }
+
+    if (maxRoomsAvailable !== undefined) {
+      const parsedMaxRooms = Number(maxRoomsAvailable);
+
+      if (!Number.isInteger(parsedMaxRooms) || parsedMaxRooms < 0) {
+        throw createError('Maximum rooms available must be a number greater than or equal to 0', 400);
+      }
+
+      filter.roomsAvailable.$lte = parsedMaxRooms;
+    }
   }
 
   if (search) {
