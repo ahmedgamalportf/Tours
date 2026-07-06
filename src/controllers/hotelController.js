@@ -53,8 +53,27 @@ const gethotelsForadmin = async(req,res) =>{
 
 };
 
+const getHotelById = async (req, res) => {
+  try {
+    const results = await hotelServices.getHotelById(req.params.id);
+
+    res.status(200).json({
+      success: true,
+      ...results,
+    });
+  } catch (error) {
+    return res.status(404).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+
+
 module.exports = {
   addHotel,
   gethotels,
   gethotelsForadmin,
+  getHotelById,
 };

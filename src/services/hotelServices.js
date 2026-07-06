@@ -1,5 +1,5 @@
 const Hotel = require('../models/Hotel');
-
+const mongoose = require('mongoose');
 
 const addHotel= async(hotelData,userId)=>{
     const {name,
@@ -92,8 +92,31 @@ const gethotelsForadmin = async (req, res) => {
     });
   }
 };
+
+
+const getHotelById = async (hotelId) => {
+  if (!mongoose.Types.ObjectId.isValid(hotelId)) {
+    throw new Error('Invalid hotel ID');
+  }
+
+  const hotel = await Hotel.findOne({
+    _id: hotelId,
+    isActive: true,
+  });
+
+  if (!hotel) {
+    throw new Error('Hotel not found');
+  }
+
+  return {
+    message: 'Hotel fetched successfully',
+    hotel,
+  };
+};
+
 module.exports = {
   addHotel,
   gethotels,
   gethotelsForadmin,
+  getHotelById,
 };
