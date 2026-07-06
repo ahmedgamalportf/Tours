@@ -131,10 +131,128 @@ const getHotelByIdForAdmin = async (hotelId) => {
   };
 };
 
+
+const editHotel = async (hotelId, updateData) => {
+  if (!mongoose.Types.ObjectId.isValid(hotelId)) {
+    throw new Error('Invalid hotel ID');
+  }
+
+  const allowedUpdates = [
+    'name',
+    'description',
+    'country',
+    'city',
+    'address',
+    'location',
+    'images',
+    'roomsAvailable',
+    'isFeatured',
+    'isActive',
+    'stars',
+  ];
+
+  const updates = {};
+
+  for (const key of allowedUpdates) {
+    if (updateData[key] !== undefined) {
+      updates[key] = updateData[key];
+    }
+  }
+
+  if (Object.keys(updates).length === 0) {
+    throw new Error('No valid fields provided for update');
+  }
+
+  if (updates.name !== undefined) {
+    if (typeof updates.name !== 'string' || !updates.name.trim()) {
+      throw new Error('Hotel name must be a non-empty string');
+    }
+    updates.name = updates.name.trim();
+  }
+
+  if (updates.description !== undefined) {
+    if (typeof updates.description !== 'string' || !updates.description.trim()) {
+      throw new Error('Description must be a non-empty string');
+    }
+    updates.description = updates.description.trim();
+  }
+
+  if (updates.country !== undefined) {
+    if (typeof updates.country !== 'string' || !updates.country.trim()) {
+      throw new Error('Country must be a non-empty string');
+    }
+    updates.country = updates.country.trim();
+  }
+
+  if (updates.city !== undefined) {
+    if (typeof updates.city !== 'string' || !updates.city.trim()) {
+      throw new Error('City must be a non-empty string');
+    }
+    updates.city = updates.city.trim();
+  }
+
+  if (updates.address !== undefined) {
+    if (typeof updates.address !== 'string' || !updates.address.trim()) {
+      throw new Error('Address must be a non-empty string');
+    }
+    updates.address = updates.address.trim();
+  }
+
+  if (updates.location !== undefined) {
+    if (typeof updates.location !== 'string' || !updates.location.trim()) {
+      throw new Error('Location link must be a non-empty string');
+    }
+    updates.location = updates.location.trim();
+  }
+
+  if (updates.stars !== undefined) {
+    if (typeof updates.stars !== 'number' || updates.stars < 1 || updates.stars > 5) {
+      throw new Error('Stars must be a number between 1 and 5');
+    }
+  }
+
+  if (updates.roomsAvailable !== undefined) {
+    if (typeof updates.roomsAvailable !== 'number' || updates.roomsAvailable < 0) {
+      throw new Error('Rooms available must be a number greater than or equal to 0');
+    }
+  }
+
+  if (updates.images !== undefined && !Array.isArray(updates.images)) {
+    throw new Error('Images must be an array');
+  }
+
+  if (updates.isFeatured !== undefined && typeof updates.isFeatured !== 'boolean') {
+    throw new Error('isFeatured must be boolean');
+  }
+
+  if (updates.isActive !== undefined && typeof updates.isActive !== 'boolean') {
+    throw new Error('isActive must be boolean');
+  }
+
+  const hotel = await Hotel.findByIdAndUpdate(
+    hotelId,
+    updates,
+    {
+      new: true,
+      runValidators: true,
+    }
+  );
+
+  if (!hotel) {
+    throw new Error('Hotel not found');
+  }
+
+  return {
+    message: 'Hotel updated successfully',
+    hotel,
+  };
+};
+
 module.exports = {
   addHotel,
   gethotels,
   gethotelsForadmin,
   getHotelById,
   getHotelByIdForAdmin,
+  editHotel,
 };
