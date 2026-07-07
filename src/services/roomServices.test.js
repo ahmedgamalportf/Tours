@@ -127,4 +127,54 @@ describe('roomServices', () => {
     expect(Room.findByIdAndDelete).toHaveBeenCalledWith(roomId);
     expect(result.message).toBe('Room permanently deleted successfully');
   });
+
+  test('searches rooms with filters', async () => {
+    const limit = jest.fn().mockResolvedValue([]);
+    const skip = jest.fn(() => ({ limit }));
+    const populate = jest.fn(() => ({ skip }));
+    const select = jest.fn(() => ({ populate }));
+
+    Room.find.mockReturnValue({ select });
+    Room.countDocuments.mockResolvedValue(0);
+
+    const result = await roomServices.searchRooms({
+      search: 'sea',
+      hotel: hotelId,
+      roomType: 'Suite',
+      minPrice: '100',
+      maxPrice: '500',
+      adults: '2',
+      children: '1',
+      isAvailable: 'true',
+    });
+
+    expect(Room.find).toHaveBeenCalledWith({
+      isActive: true,
+      hotel: hotelId,
+      roomType: 'suite',
+      pricePerNight: {
+        $gte: 100,
+        $lte: 500,
+      },
+      'capacity.adults': { $gte: 2 },
+      'capacity.children': { $gte: 1 },
+      isAvailable: true,
+      $or: [
+        { roomName: { $regex: 'sea', $options: 'i' } },
+        { description: { $regex: 'sea', $options: 'i' } },
+      ],
+    });
+    expect(select).toHaveBeenCalledWith('-createdBy');
+    expect(populate).toHaveBeenCalledWith('hotel', 'name city country');
+    expect(result.rooms).toEqual([]);
+  });
+
+  test('rejects invalid room search filters', async () => {
+    await expect(roomServices.searchRooms({ hotel: 'bad-id' })).rejects.toThrow('Invalid hotel ID');
+    await expect(roomServices.searchRooms({ roomType: 'castle' })).rejects.toThrow('Invalid room type');
+    await expect(roomServices.searchRooms({ minPrice: '-1' })).rejects.toThrow(
+      'Minimum price must be a number greater than or equal to 0'
+    );
+    await expect(roomServices.searchRooms({ adults: '0' })).rejects.toThrow('Adults must be a positive integer');
+  });
 });
