@@ -213,8 +213,31 @@ const addCruiseTrip = async(cruiseTripData,userId)=>{
     };
 };
 
+const getAllCruiseTrips = async (queryParams)=>{
+
+    const { page, limit, skip } = validatePagination(queryParams);
+
+  const filter = {
+    isActive: true,
+  };
+
+  const cruiseTrips = await CruiseTrip.find(filter);
+  const totalCruiseTrips = await CruiseTrip.countDocuments(filter);
+
+  return {
+    message: 'Cruises fetched successfully',
+    pagination: {
+      currentPage: page,
+      limit,
+      totalCruiseTrips,
+      totalPages: Math.ceil(totalCruiseTrips / limit),
+    },
+    cruiseTrips,
+  };
+};
 
 
 module.exports ={
     addCruiseTrip,
+    getAllCruiseTrips,
 };

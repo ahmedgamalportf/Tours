@@ -17,12 +17,30 @@ const addCruiseTrip = async(req,res)=>{
         success: false,
         message: error.message,
       });
-      
+
     }
 
 }
 
+const getAllCruiseTrips = async(req,res)=>{
+
+    try {
+        
+        const results = await cruiseTripeServices.getAllCruiseTrips(req.query);
+        res.status(200).json({
+            success: true,
+            ...results,
+        })
+
+    } catch (error) {
+        return res.status(getStatusCode(error)).json({
+            success: false,
+            message: error.message,
+        });
+    }
+}
 
 module.exports = {
     addCruiseTrip,
+    getAllCruiseTrips,
 };
