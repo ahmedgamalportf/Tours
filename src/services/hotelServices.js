@@ -87,8 +87,15 @@ const addHotel= async(hotelData,userId)=>{
         throw createError('isActive must be boolean', 400);
     }
 
+    const normalizedName = name.trim();
+    const checkHotel = await Hotel.findOne({name:normalizedName}); 
+
+    if(checkHotel){
+        throw createError('Hotel is exist already!', 409);
+    }
+
     const hotel = await Hotel.create({
-        name: name.trim(),
+        name: normalizedName,
         description: description.trim(),
         country: country.trim(),
         city: city.trim(),

@@ -8,6 +8,12 @@ const cruiseTripSchema = new mongoose.Schema(
       trim: true,
     },
 
+    name: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+
     description: {
       type: String,
       required: true,
@@ -147,12 +153,10 @@ const cruiseTripSchema = new mongoose.Schema(
   }
 );
 
-cruiseTripSchema.pre('validate', function (next) {
+cruiseTripSchema.pre('validate', function () {
   if (this.startDateTime && this.endDateTime) {
     this.durationHours = (this.endDateTime - this.startDateTime) / (1000 * 60 * 60);
   }
-
-  next();
 });
 
 const CruiseTrip = mongoose.model('CruiseTrip',cruiseTripSchema);

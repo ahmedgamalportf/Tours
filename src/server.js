@@ -15,6 +15,7 @@ const connectDB = require('./config/db');
 const authRoutes = require('./routes/authRoutes')
 const hotelRoutes = require('./routes/hotelRoutes')
 const roomRoutes = require('./routes/roomRoutes')
+const cruiseTripeRoutes = require('./routes/cruiseTripRoutes')
 
 
 
@@ -26,7 +27,7 @@ app.use(express.json());
 app.use('/api/v1/auth',authRoutes);
 app.use('/api/v1/hotels',hotelRoutes);
 app.use('/api/v1/rooms',roomRoutes);
-
+app.use('/api/v1/cruise-trips',cruiseTripeRoutes);
 
 app.get('/', (req, res) => {
     res.send('API is running...');
