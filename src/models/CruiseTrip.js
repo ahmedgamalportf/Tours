@@ -89,6 +89,13 @@ const cruiseTripSchema = new mongoose.Schema(
       min: 0,
       validate: {
         validator: function (value) {
+          if (this instanceof mongoose.Query) {
+            const update = this.getUpdate();
+            const capacity = update.capacity ?? update.$set?.capacity;
+
+            return capacity === undefined || value <= capacity;
+          }
+
           return value <= this.capacity;
         },
         message: 'Available seats cannot be greater than capacity',
