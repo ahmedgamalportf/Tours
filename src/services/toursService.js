@@ -913,6 +913,60 @@ const searchTours = async(queryParams) => {
     };
 }
 
+const adminSearchTours = async(queryParams) => {
+    const {
+        search,
+        isActive,
+        page = 1,
+        limit = 10,
+    } = queryParams;
+
+    const filter = {};
+
+    if (isActive !== undefined) {
+        if (!['true', 'false'].includes(String(isActive))) {
+            throw createError('isActive must be true or false', 400);
+        }
+
+        filter.isActive = isActive === 'true';
+    }
+
+    if (search) {
+        filter.$or = [
+            { title: { $regex: search, $options: 'i' } },
+            { name: { $regex: search, $options: 'i' } },
+            { description: { $regex: search, $options: 'i' } },
+            { tourType: { $regex: search, $options: 'i' } },
+            { country: { $regex: search, $options: 'i' } },
+            { city: { $regex: search, $options: 'i' } },
+            { meetingPoint: { $regex: search, $options: 'i' } },
+        ];
+    }
+
+    const {
+        page: currentPage,
+        limit: pageLimit,
+        skip,
+    } = validatePagination({ page, limit });
+
+    const tours = await Tour.find(filter)
+        .skip(skip)
+        .limit(pageLimit);
+
+    const totalTours = await Tour.countDocuments(filter);
+
+    return {
+        message: 'Admin tours search results fetched successfully',
+        pagination: {
+            currentPage,
+            limit: pageLimit,
+            totalTours,
+            totalPages: Math.ceil(totalTours / pageLimit),
+        },
+        tours,
+    };
+}
+
 module.exports ={
     addTours,
     getAllTours,
@@ -924,4 +978,5 @@ module.exports ={
     restoreTour,
     hardDeleteTour,
     searchTours,
+    adminSearchTours,
 };

@@ -165,6 +165,22 @@ const searchHotels = async (req, res) => {
   }
 };
 
+const adminSearchHotels = async (req, res) => {
+  try {
+    const results = await hotelServices.adminSearchHotels(req.query);
+
+    res.status(200).json({
+      success: true,
+      ...results,
+    });
+  } catch (error) {
+    return res.status(getStatusCode(error)).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
 
 module.exports = {
   addHotel,
@@ -177,4 +193,5 @@ module.exports = {
   restoreHotel,
   hardDeleteHotel,
   searchHotels,
+  adminSearchHotels,
 };

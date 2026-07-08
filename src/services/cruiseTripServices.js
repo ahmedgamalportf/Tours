@@ -814,6 +814,60 @@ const searchCruiseTrips = async (queryParams) => {
   };
 };
 
+const adminSearchCruiseTrips = async (queryParams) => {
+  const {
+    search,
+    isActive,
+    page = 1,
+    limit = 10,
+  } = queryParams;
+
+  const filter = {};
+
+  if (isActive !== undefined) {
+    if (!['true', 'false'].includes(String(isActive))) {
+      throw createError('isActive must be true or false', 400);
+    }
+
+    filter.isActive = isActive === 'true';
+  }
+
+  if (search) {
+    filter.$or = [
+      { title: { $regex: search, $options: 'i' } },
+      { name: { $regex: search, $options: 'i' } },
+      { description: { $regex: search, $options: 'i' } },
+      { cruiseType: { $regex: search, $options: 'i' } },
+      { city: { $regex: search, $options: 'i' } },
+      { country: { $regex: search, $options: 'i' } },
+      { marinaName: { $regex: search, $options: 'i' } },
+    ];
+  }
+
+  const {
+    page: currentPage,
+    limit: pageLimit,
+    skip,
+  } = validatePagination({ page, limit });
+
+  const cruiseTrips = await CruiseTrip.find(filter)
+    .skip(skip)
+    .limit(pageLimit);
+
+  const totalCruiseTrips = await CruiseTrip.countDocuments(filter);
+
+  return {
+    message: 'Admin cruise trips search results fetched successfully',
+    pagination: {
+      currentPage,
+      limit: pageLimit,
+      totalCruiseTrips,
+      totalPages: Math.ceil(totalCruiseTrips / pageLimit),
+    },
+    cruiseTrips,
+  };
+};
+
 module.exports ={
     addCruiseTrip,
     getAllCruiseTrips,
@@ -825,4 +879,5 @@ module.exports ={
     restoreCruiseTrip,
     hardDeleteCruiseTrip,
     searchCruiseTrips,
+    adminSearchCruiseTrips,
 };

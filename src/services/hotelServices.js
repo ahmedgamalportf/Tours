@@ -481,6 +481,58 @@ const searchHotels = async (queryParams) => {
   };
 };
 
+const adminSearchHotels = async (queryParams) => {
+  const {
+    search,
+    isActive,
+    page = 1,
+    limit = 10,
+  } = queryParams;
+
+  const filter = {};
+
+  if (isActive !== undefined) {
+    if (!['true', 'false'].includes(String(isActive))) {
+      throw createError('isActive must be true or false', 400);
+    }
+
+    filter.isActive = isActive === 'true';
+  }
+
+  if (search) {
+    filter.$or = [
+      { name: { $regex: search, $options: 'i' } },
+      { description: { $regex: search, $options: 'i' } },
+      { city: { $regex: search, $options: 'i' } },
+      { country: { $regex: search, $options: 'i' } },
+      { address: { $regex: search, $options: 'i' } },
+    ];
+  }
+
+  const {
+    page: currentPage,
+    limit: pageLimit,
+    skip,
+  } = validatePagination({ page, limit });
+
+  const hotels = await Hotel.find(filter)
+    .skip(skip)
+    .limit(pageLimit);
+
+  const totalHotels = await Hotel.countDocuments(filter);
+
+  return {
+    message: 'Admin hotels search results fetched successfully',
+    pagination: {
+      currentPage,
+      limit: pageLimit,
+      totalHotels,
+      totalPages: Math.ceil(totalHotels / pageLimit),
+    },
+    hotels,
+  };
+};
+
 module.exports = {
   addHotel,
   gethotels,
@@ -492,4 +544,5 @@ module.exports = {
   restoreHotel,
   hardDeleteHotel,
   searchHotels,
+  adminSearchHotels,
 };

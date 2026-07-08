@@ -584,6 +584,57 @@ const searchRooms = async (queryParams) => {
   };
 };
 
+const adminSearchRooms = async (queryParams) => {
+  const {
+    search,
+    isActive,
+    page = 1,
+    limit = 10,
+  } = queryParams;
+
+  const filter = {};
+
+  if (isActive !== undefined) {
+    if (!['true', 'false'].includes(String(isActive))) {
+      throw createError('isActive must be true or false', 400);
+    }
+
+    filter.isActive = isActive === 'true';
+  }
+
+  if (search) {
+    filter.$or = [
+      { roomName: { $regex: search, $options: 'i' } },
+      { roomType: { $regex: search, $options: 'i' } },
+      { description: { $regex: search, $options: 'i' } },
+    ];
+  }
+
+  const {
+    page: currentPage,
+    limit: pageLimit,
+    skip,
+  } = validatePagination({ page, limit });
+
+  const rooms = await Room.find(filter)
+    .populate('hotel', 'name city country')
+    .skip(skip)
+    .limit(pageLimit);
+
+  const totalRooms = await Room.countDocuments(filter);
+
+  return {
+    message: 'Admin rooms search results fetched successfully',
+    pagination: {
+      currentPage,
+      limit: pageLimit,
+      totalRooms,
+      totalPages: Math.ceil(totalRooms / pageLimit),
+    },
+    rooms,
+  };
+};
+
 
 
 module.exports = {
@@ -596,4 +647,5 @@ module.exports = {
     restoreRoom,
     hardDeleteRoom,
     searchRooms,
+    adminSearchRooms,
 };

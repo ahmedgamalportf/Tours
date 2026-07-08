@@ -15,6 +15,7 @@ const {
   restoreHotel,
   hardDeleteHotel,
   searchHotels,
+  adminSearchHotels,
 
 } = require('../controllers/hotelController');
 
@@ -27,6 +28,7 @@ router.patch('/softDelete/:id', authMiddleware, allowRoles('admin'), softDeleteH
 router.patch('/restore/:id', authMiddleware, allowRoles('admin'), restoreHotel);
 router.delete('/hardDelete/:id', authMiddleware, allowRoles('admin'), hardDeleteHotel);
 router.get('/search', searchHotels);
+router.get('/adminSearch', authMiddleware, allowRoles('admin'), adminSearchHotels);
 router.get('/gethotelsForadmin',authMiddleware,allowRoles('admin'),gethotelsForadmin);
 
 module.exports = router;

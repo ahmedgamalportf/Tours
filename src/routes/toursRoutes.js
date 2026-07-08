@@ -14,11 +14,13 @@ const {
     restoreTour,
     hardDeleteTour,
     searchTours,
+    adminSearchTours,
 
 }= require('../controllers/toursController');
 
 router.post('/addTours',authMiddleware,allowRoles('admin'),addTours);
 router.get('/search',searchTours);
+router.get('/adminSearch',authMiddleware,allowRoles('admin'),adminSearchTours);
 router.get('/getAllTours',getAllTours);
 router.get('/getTourById/:id',getTourById);
 router.get('/getAllToursForAdmin',authMiddleware,allowRoles('admin'),getAllToursForAdmin);

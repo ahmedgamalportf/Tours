@@ -156,6 +156,21 @@ const searchRooms = async (req, res) => {
     }
 }
 
+const adminSearchRooms = async (req, res) => {
+    try {
+        const results = await roomServices.adminSearchRooms(req.query);
+        res.status(200).json({
+        success: true,
+        ...results,
+    });
+    } catch (error) {
+        return res.status(getStatusCode(error)).json({
+        success: false,
+        message: error.message,
+    });
+    }
+}
+
 
 
 module.exports = {
@@ -167,5 +182,6 @@ module.exports = {
   softDeleteRoom,
   restoreRoom,
   hardDeleteRoom,
-  searchRooms
+  searchRooms,
+  adminSearchRooms
 };

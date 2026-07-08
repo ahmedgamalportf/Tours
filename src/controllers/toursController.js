@@ -156,6 +156,21 @@ const searchTours = async(req,res) =>{
     }
 }
 
+const adminSearchTours = async(req,res) =>{
+    try {
+        const results = await toursServices.adminSearchTours(req.query);
+        res.status(200).json({
+            success:true,
+            ...results,
+        })
+    } catch (error) {
+        return res.status(getStatusCode(error)).json({
+            message:error.message,
+            success:false,
+        })
+    }
+}
+
 module.exports = {
     addTours,
     getAllTours,
@@ -167,5 +182,6 @@ module.exports = {
     restoreTour,
     hardDeleteTour,
     searchTours,
+    adminSearchTours,
 
 }

@@ -169,6 +169,23 @@ const searchCruiseTrips = async (req,res)=>{
   }
 }
 
+const adminSearchCruiseTrips = async (req,res)=>{
+  try {
+    
+    const results = await cruiseTripeServices.adminSearchCruiseTrips(req.query);
+    res.status(200).json({
+      success: true,
+      ...results,
+    });
+
+  } catch (error) {
+    return res.status(getStatusCode(error)).json({
+      success: false,
+      message: error.message,
+    });
+  }
+}
+
 module.exports = {
     addCruiseTrip,
     getAllCruiseTrips,
@@ -180,4 +197,5 @@ module.exports = {
     restoreCruiseTrip,
     hardDeleteCruiseTrip,
     searchCruiseTrips,
+    adminSearchCruiseTrips,
 };

@@ -15,12 +15,14 @@ softDeleteCruiseTrip,
 restoreCruiseTrip,
 hardDeleteCruiseTrip,
 searchCruiseTrips,
+adminSearchCruiseTrips,
 
 } = require('../controllers/cruiseTripController');
 
 
 router.post('/addCruiseTrip',authMiddleware,allowRoles('admin'),addCruiseTrip);
 router.get('/search',searchCruiseTrips);
+router.get('/adminSearch',authMiddleware,allowRoles('admin'),adminSearchCruiseTrips);
 router.get('/getAllCruiseTrips',getAllCruiseTrips)
 router.get('/getAllCruisesTripsById/:id',getAllCruisesTripsById);
 router.get('/getAllCruiseTripsForAdmin',authMiddleware,allowRoles('admin'),getAllCruiseTripsForAdmin);
