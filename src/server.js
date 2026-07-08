@@ -17,6 +17,7 @@ const hotelRoutes = require('./routes/hotelRoutes')
 const roomRoutes = require('./routes/roomRoutes')
 const cruiseTripeRoutes = require('./routes/cruiseTripRoutes')
 const toursRoutes = require('./routes/toursRoutes')
+const bookingRoutes = require('./routes/bookingRoutes')
 
 
 
@@ -30,6 +31,7 @@ app.use('/api/v1/hotels',hotelRoutes);
 app.use('/api/v1/rooms',roomRoutes);
 app.use('/api/v1/cruise-trips',cruiseTripeRoutes);
 app.use('/api/v1/tours',toursRoutes);
+app.use('/api/v1/bookings',bookingRoutes);
 
 
 
