@@ -16,6 +16,7 @@ const authRoutes = require('./routes/authRoutes')
 const hotelRoutes = require('./routes/hotelRoutes')
 const roomRoutes = require('./routes/roomRoutes')
 const cruiseTripeRoutes = require('./routes/cruiseTripRoutes')
+const toursRoutes = require('./routes/toursRoutes')
 
 
 
@@ -28,6 +29,9 @@ app.use('/api/v1/auth',authRoutes);
 app.use('/api/v1/hotels',hotelRoutes);
 app.use('/api/v1/rooms',roomRoutes);
 app.use('/api/v1/cruise-trips',cruiseTripeRoutes);
+app.use('/api/v1/tours',toursRoutes);
+
+
 
 app.get('/', (req, res) => {
     res.send('API is running...');
